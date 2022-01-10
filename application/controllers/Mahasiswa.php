@@ -52,14 +52,6 @@ class Mahasiswa extends CI_Controller
         $this->form_validation->set_rules('no_induk', 'Nomor Induk', 'required|numeric|is_unique[mahasiswa.no_induk]|min_length[5]');
         $this->form_validation->set_rules('nama', 'Nama', 'required');
 
-        // file foto wajib dikirim yah..
-        if (empty($_FILES['foto_pribadi']['name'])) {
-            $this->form_validation->set_rules('foto_pribadi', 'File Foto Pribadi', 'required');
-        }
-        if (empty($_FILES['foto_ktp']['name'])) {
-            $this->form_validation->set_rules('foto_ktp', 'File Foto KTP', 'required');
-        }
-
         if ($this->form_validation->run() == FALSE) {
             $this->load->view('templates/header', $data);
             $this->load->view('templates/sidebar');
@@ -77,15 +69,35 @@ class Mahasiswa extends CI_Controller
             // validasi file input
             // konfigurasi rules file input
 
-            for ($i = 0; $i < 2; $i++) {
-                if ($i == 0) {
-                    $path = 'public/upload/img/';
-                    $data['filename_foto_pribadi'] = $this->do_upload('foto_pribadi', $path, 'mahasiswa/create');
-                }
-                if ($i == 1) {
-                    $path = 'public/upload/img/';
-                    $data['filename_foto_ktp'] = $this->do_upload('foto_ktp', $path, 'mahasiswa/create');
-                }
+            $path = 'public/upload/img/';
+
+            $resultA = $this->do_upload('foto_pribadi', $path);
+            $resultB = $this->do_upload('foto_ktp', $path);
+
+            // kondisi validasi foto pribadi
+            if ($resultA['error']) {
+                unlink('public/upload/img/' . $resultA['filename']);
+                unlink('public/upload/img/' . $resultB['filename']);
+
+                $this->session->set_flashdata('error_foto_pribadi', $resultA['error']);
+                redirect('mahasiswa/create');
+            }
+
+            if ($resultA['filename']) {
+                $data['filename_foto_pribadi'] = $resultA['filename'];
+            }
+
+            // kondisi validasi foto ktp
+            if ($resultB['error']) {
+                unlink('public/upload/img/' . $resultA['filename']);
+                unlink('public/upload/img/' . $resultB['filename']);
+
+                $this->session->set_flashdata('error_foto_ktp', $resultB['error']);
+                redirect('mahasiswa/create');
+            }
+
+            if ($resultB['filename']) {
+                $data['filename_foto_ktp'] = $resultB['filename'];
             }
 
             $this->mahasiswa_model->insert($data);
@@ -104,6 +116,14 @@ class Mahasiswa extends CI_Controller
         $this->load->view('templates/sidebar');
         $this->load->view('mahasiswa/edit', $data);
         $this->load->view('templates/footer');
+
+        if (isset($_SESSION['error_foto_pribadi'])) {
+            unset($_SESSION['error_foto_pribadi']);
+        }
+
+        if (isset($_SESSION['error_foto_ktp'])) {
+            unset($_SESSION['error_foto_ktp']);
+        }
     }
 
     public function update($id)
@@ -145,33 +165,58 @@ class Mahasiswa extends CI_Controller
         // jika ada yang salah
         if ($this->form_validation->run() == FALSE) {
             redirect('mahasiswa/edit/' . $data['no_induk']);
-
-            if (isset($_SESSION['error_foto_pribadi'])) {
-                unset($_SESSION['error_foto_pribadi']);
-            }
-
-            if (isset($_SESSION['error_foto_ktp'])) {
-                unset($_SESSION['error_foto_ktp']);
-            }
         } else {
 
             // validasi file input
             // konfigurasi rules file input
 
             $path = 'public/upload/img/';
-            $data['filename_foto_pribadi'] = $data['foto_pribadi']; // nama file default
-            $data['filename_foto_ktp'] = $data['foto_ktp'];
-
+            $success = FALSE;
 
             // ada yang di upload? kalo ada eksekusi
-            if (!empty($_FILES['foto_pribadi']['name'])) {
-                unlink('public/upload/img/' . $data['foto_pribadi']);
-                $data['filename_foto_pribadi'] = $this->do_upload('foto_pribadi', $path, '/mahasiswa/edit/' . $data['no_induk']);
+            // validasi foto pribadi
+            if (file_exists($_FILES['foto_pribadi']['tmp_name']) || is_uploaded_file($_FILES['foto_pribadi']['tmp_name'])) {
+                $result = $this->do_upload('foto_pribadi', $path);
+
+                if ($result['error']) {
+                    $this->session->set_flashdata('error_foto_pribadi', $result['error']);
+                    redirect('mahasiswa/edit/' . $data['no_induk']);
+                }
+
+                if ($result['filename']) {
+                    $success = TRUE;
+                    $data['filename_foto_pribadi'] = $result['filename'];
+                }
+            } else {
+                $success = TRUE;
+                $data['filename_foto_pribadi'] = $data['foto_pribadi']; // nama file default
             }
 
-            if (!empty($_FILES['foto_ktp']['name'])) {
-                unlink('public/upload/img/' . $data['foto_ktp']);
-                $data['filename_foto_ktp'] = $this->do_upload('foto_ktp', $path, 'mahasiswa/edit/' . $data['no_induk']);
+            // validasi foto ktp
+            if (file_exists($_FILES['foto_ktp']['tmp_name']) || is_uploaded_file($_FILES['foto_ktp']['tmp_name'])) {
+                $result = $this->do_upload('foto_ktp', $path);
+
+                if ($result['error']) {
+                    $this->session->set_flashdata('error_foto_ktp', $result['error']);
+                    redirect('mahasiswa/edit/' . $data['no_induk']);
+                }
+
+                if ($result['filename']) {
+                    $success = TRUE;
+                    $data['filename_foto_ktp'] = $result['filename'];
+                }
+            } else {
+                $success = TRUE;
+                $data['filename_foto_ktp'] = $data['foto_ktp'];
+            }
+
+            if ($success) {
+                if ($data['filename_foto_pribadi'] != $data['foto_pribadi']) {
+                    unlink('public/upload/img/' . $data['foto_pribadi']);
+                }
+                if ($data['filename_foto_ktp'] != $data['foto_ktp']) {
+                    unlink('public/upload/img/' . $data['foto_ktp']);
+                }
             }
 
             $this->mahasiswa_model->update($data['id'], $data);
@@ -195,10 +240,10 @@ class Mahasiswa extends CI_Controller
 
     // fungsi tambahan
 
-    private function do_upload($field, $path, $destination_error)
+    protected function do_upload($field, $path)
     {
         $config['upload_path'] = $path;
-        $config['allowed_types'] = 'gif|jpg|png';
+        $config['allowed_types'] = 'gif|jpg|jpeg|png';
         $config['max_size'] = '1024';
         $config['encrypt_name'] = TRUE;
 
@@ -206,19 +251,12 @@ class Mahasiswa extends CI_Controller
         $this->load->library('upload', $config);
 
         if (!$this->upload->do_upload($field)) {
-            $error = $this->upload->display_errors();
-
-            if (isset($_SESSION['error_' . $field])) {
-                unset($_SESSION['error_' . $field]);
-            }
-
-            $this->session->set_flashdata('error_' . $field, $error);
-            redirect($destination_error); // tujuan setelah error
+            $result['error'] = $this->upload->display_errors();
+            return $result;
         } else {
             $upload_data = $this->upload->data();
-            $fileName = $upload_data['file_name'];
-
-            return $fileName;
+            $result['filename'] = $upload_data['file_name'];
+            return $result;
         }
     }
 }

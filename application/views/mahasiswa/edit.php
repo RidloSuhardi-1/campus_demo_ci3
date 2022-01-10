@@ -24,7 +24,7 @@
 
             <div class="col-12">
                 <label for="foto_pribadi" class="form-label">Foto Pribadi</label>
-                <input name="foto_pribadi" class="form-control form-control-sm mb-2 <?= form_error('foto_pribadi'); ?>" id="foto_pribadi" type="file">
+                <input name="foto_pribadi" class="form-control form-control-sm mb-2 <?= ($this->session->flashdata('error_foto_pribadi')) ? 'is-invalid' : ''; ?>" id="foto_pribadi" type="file">
                 <?php if ($this->session->flashdata('error_foto_pribadi')) : ?>
                     <span class="text-danger">
                         <?= $this->session->flashdata('error_foto_pribadi'); ?>
@@ -34,7 +34,7 @@
 
             <div class="col-12">
                 <label for="foto_ktp" class="form-label">Foto KTP</label>
-                <input name="foto_ktp" class="form-control form-control-sm mb-2 <?= form_error('foto_ktp'); ?>" id="foto_ktp" type="file">
+                <input name="foto_ktp" class="form-control form-control-sm mb-2 <?= ($this->session->flashdata('error_foto_ktp')) ? 'is-invalid' : ''; ?>" id="foto_ktp" type="file">
                 <?php if ($this->session->flashdata('error_foto_ktp')) : ?>
                     <span class="text-danger">
                         <?= $this->session->flashdata('error_foto_ktp'); ?>
