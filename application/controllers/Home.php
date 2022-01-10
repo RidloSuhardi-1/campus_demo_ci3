@@ -8,9 +8,9 @@ class Home extends CI_Controller
         $data['title'] = 'Beranda';
 
         // load view
-        $this->load->view('templates/header');
+        $this->load->view('templates/header', $data);
         $this->load->view('templates/sidebar');
-        $this->load->view('home.php', $data);
+        $this->load->view('home.php');
         $this->load->view('templates/footer');
     }
 }
