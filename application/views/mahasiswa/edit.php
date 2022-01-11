@@ -6,40 +6,54 @@
 
     <h2>Ubah Mahasiswa</h2>
 
-    <form action="<?= base_url(); ?>mahasiswa/update/<?= $mahasiswa['no_induk']; ?>" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+    <form action="" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
         <input type="hidden" name="old_no_induk" value="<?= $mahasiswa['no_induk']; ?>">
 
         <div class="row g-3">
             <div class="col-sm-6">
                 <label for="no_induk" class="form-label">No Induk</label>
-                <input name="no_induk" type="number" class="form-control mb-2 <?= (form_error('no_induk')) ? 'is-invalid' : ''; ?>" id="no_induk" placeholder="" value="<?= set_value('no_induk', $mahasiswa['no_induk']) ?>" required>
+                <input name="no_induk" type="number" class="form-control mb-2 <?= (form_error('no_induk')) ? 'is-invalid' : ''; ?>" id="no_induk" placeholder="" value="<?= $mahasiswa['no_induk'] ?>" required>
                 <span class="text-danger"><?= form_error('no_induk'); ?></span>
             </div>
 
             <div class="col-sm-6">
                 <label for="nama" class="form-label">Nama</label>
-                <input name="nama" type="text" class="form-control mb-2 <?= (form_error('nama')) ? 'is-invalid' : ''; ?>" id="nama" placeholder="" value="<?= set_value('nama', $mahasiswa['nama']); ?>" required>
+                <input name="nama" type="text" class="form-control mb-2 <?= (form_error('nama')) ? 'is-invalid' : ''; ?>" id="nama" placeholder="" value="<?= $mahasiswa['nama']; ?>" required>
                 <span class="text-danger"><?= form_error('nama'); ?></span>
             </div>
 
             <div class="col-12">
                 <label for="foto_pribadi" class="form-label">Foto Pribadi</label>
-                <input name="foto_pribadi" class="form-control form-control-sm mb-2 <?= ($this->session->flashdata('error_foto_pribadi')) ? 'is-invalid' : ''; ?>" id="foto_pribadi" type="file">
-                <?php if ($this->session->flashdata('error_foto_pribadi')) : ?>
-                    <span class="text-danger">
-                        <?= $this->session->flashdata('error_foto_pribadi'); ?>
-                    </span>
-                <?php endif; ?>
+                <div class="row">
+                    <div class="col-8">
+                        <input name="foto_pribadi" class="form-control form-control-sm mb-2 <?= ($this->session->flashdata('error_foto_pribadi')) ? 'is-invalid' : ''; ?>" id="foto_pribadi" type="file">
+                        <?php if ($this->session->flashdata('error_foto_pribadi')) : ?>
+                            <span class="text-danger">
+                                <?= $this->session->flashdata('error_foto_pribadi'); ?>
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="col-4">
+                        <img src="<?= base_url('public/upload/img/' . $mahasiswa['foto_pribadi']); ?>" alt="" class="img-thumbnail" width="100">
+                    </div>
+                </div>
             </div>
 
             <div class="col-12">
                 <label for="foto_ktp" class="form-label">Foto KTP</label>
-                <input name="foto_ktp" class="form-control form-control-sm mb-2 <?= ($this->session->flashdata('error_foto_ktp')) ? 'is-invalid' : ''; ?>" id="foto_ktp" type="file">
-                <?php if ($this->session->flashdata('error_foto_ktp')) : ?>
-                    <span class="text-danger">
-                        <?= $this->session->flashdata('error_foto_ktp'); ?>
-                    </span>
-                <?php endif; ?>
+                <div class="row">
+                    <div class="col-8">
+                        <input name="foto_ktp" class="form-control form-control-sm mb-2 <?= ($this->session->flashdata('error_foto_ktp')) ? 'is-invalid' : ''; ?>" id="foto_ktp" type="file">
+                        <?php if ($this->session->flashdata('error_foto_ktp')) : ?>
+                            <span class="text-danger">
+                                <?= $this->session->flashdata('error_foto_ktp'); ?>
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="col-4">
+                        <img src="<?= base_url('public/upload/img/' . $mahasiswa['foto_ktp']); ?>" alt="" class="img-thumbnail" width="100">
+                    </div>
+                </div>
             </div>
 
             <hr class="my-3">
