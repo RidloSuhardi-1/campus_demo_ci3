@@ -23,16 +23,17 @@ class Mahasiswa_model extends CI_Model
         $this->db->insert('mahasiswa', $data);
     }
 
-    public function update($id, $data = '')
+    public function update($data)
     {
         $data = [
+            'id' => $data['mahasiswa']['id'],
             'no_induk' => $this->input->post('no_induk', true),
             'nama' => $this->input->post('nama', true),
             'foto_pribadi' => $data['filename_foto_pribadi'],
             'foto_ktp' => $data['filename_foto_ktp']
         ];
 
-        $this->db->where('id', $id);
+        $this->db->where('id', $data['id']);
         $this->db->update('mahasiswa', $data);
     }
 
